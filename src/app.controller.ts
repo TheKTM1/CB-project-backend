@@ -66,7 +66,7 @@ export class AppController {
         throw new UnauthorizedException();
       }
 
-      const user = await this.appService.findOne({id: data['id']});
+      const user = await this.appService.findOne({where: {id: data['id']} });
 
       const {password, ...result} = user;
 
