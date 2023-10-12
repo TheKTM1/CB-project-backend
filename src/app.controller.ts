@@ -7,7 +7,7 @@ import * as bcrypt from 'bcrypt';
 @Controller('api')
 export class AppController {
   constructor(
-    private readonly appService: AppService, //rename to UserService
+    private readonly userService: AppService,
     private jwtService: JwtService
   ) {
 
@@ -20,9 +20,10 @@ export class AppController {
     ){
       const hashedPassword = await bcrypt.hash(password, 10);
 
-      const user = await this.appService.create({
+      const user = await this.userService.create({
         name,
-        password: hashedPassword
+        password: hashedPassword,
+        roleid: 2,
       });
 
       delete user.password;
@@ -36,7 +37,7 @@ export class AppController {
     @Body('password') password: string,
     @Res({passthrough: true}) response: Response
   ){
-    const user = await this.appService.findOne({where: {name}});
+    const user = await this.userService.findOne({where: {name}});
 
     if(!user){
       throw new BadRequestException('No user with given name has been found.');
@@ -63,16 +64,23 @@ export class AppController {
       const data = await this.jwtService.verifyAsync(cookie);
 
       if(!data){
+        console.error('No jwt data.');
         throw new UnauthorizedException();
       }
 
-      const user = await this.appService.findOne({where: {id: data['id']} });
+      const user = await this.userService.findOne({where: {id: data['id']} });
+      const role = await this.userService.findRole({where: {id: data['roleid']}});
 
-      const {password, ...result} = user;
+      const userResponse = {
+        id: user.id,
+        name: user.name,
+        roleid: role.name,
+      };
 
-      return result;
+      return userResponse;
       
     } catch (e){
+      console.error('Error while processing a request.');
       throw new UnauthorizedException();
     }
   }
