@@ -23,7 +23,11 @@ export class AppController {
       const user = await this.userService.create({
         name,
         password: hashedPassword,
-        roleId: 2
+        roleId: 2,
+        // passwordExpiration,
+        mustChangePassword: true,
+        passwordRestrictionsEnabled: true,
+        isBlocked: false,
       });
 
       delete user.password;
@@ -47,7 +51,7 @@ export class AppController {
       throw new BadRequestException(`Given password does not match the user's password.`);
     }
 
-    const jwt = await this.jwtService.signAsync({id: user.id}); //chyba tutaj będzie można rename
+    const jwt = await this.jwtService.signAsync({id: user.id});
     
     response.cookie('jwt', jwt, {httpOnly: true});
 
@@ -74,6 +78,10 @@ export class AppController {
         id: user.id,
         name: user.name,
         roleId: user.roleId,
+        passwordExpiration: user.passwordExpiration,
+        mustChangePassword: user.mustChangePassword,
+        passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
+        isBlocked: user.isBlocked,
       };
 
       return userResponse;
@@ -83,6 +91,8 @@ export class AppController {
       throw new UnauthorizedException();
     }
   }
+
+  // @Get('users')
 
   @Post('logout')
   async logout(@Res({passthrough: true}) response: Response){

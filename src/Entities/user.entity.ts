@@ -5,12 +5,24 @@ export class User {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column({unique: true})
+    @Column({unique: true, nullable: false})
     name: string;
 
-    @Column()
+    @Column({nullable: false})
     password: string;
     
     @Column()
     roleId: number;
+
+    @Column({nullable: true})
+    passwordExpiration: Date;
+
+    @Column()
+    mustChangePassword: boolean;
+
+    @Column()
+    passwordRestrictionsEnabled: boolean;
+
+    @Column()
+    isBlocked: boolean;
 }

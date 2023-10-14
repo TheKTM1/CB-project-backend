@@ -18,4 +18,8 @@ export class AppService {
   async findOne(condition: any): Promise<User> {
     return this.userRepository.findOne(condition);
   }
+
+  async findAll(): Promise<User[]> {
+    return this.userRepository.find();
+  }
 }
