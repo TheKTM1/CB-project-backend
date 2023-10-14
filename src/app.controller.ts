@@ -23,11 +23,11 @@ export class AppController {
       const user = await this.userService.create({
         name,
         password: hashedPassword,
-        roleid: 2,
+        roleId: 2
       });
 
       delete user.password;
-
+      
       return user;
   }
 
@@ -47,8 +47,8 @@ export class AppController {
       throw new BadRequestException(`Given password does not match the user's password.`);
     }
 
-    const jwt = await this.jwtService.signAsync({id: user.id});
-
+    const jwt = await this.jwtService.signAsync({id: user.id}); //chyba tutaj będzie można rename
+    
     response.cookie('jwt', jwt, {httpOnly: true});
 
     return {
@@ -69,12 +69,11 @@ export class AppController {
       }
 
       const user = await this.userService.findOne({where: {id: data['id']} });
-      const role = await this.userService.findRole({where: {id: data['roleid']}});
 
       const userResponse = {
         id: user.id,
         name: user.name,
-        roleid: role.name,
+        roleId: user.roleId,
       };
 
       return userResponse;
