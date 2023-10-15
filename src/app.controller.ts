@@ -92,6 +92,34 @@ export class AppController {
     }
   }
 
+  @Post('change-password')
+  async changePassword(
+    @Body('userName') name: string,
+    @Body('newPassword') newPassword: string,
+    @Body('oldPassword') oldPassword: string,
+  ){
+    const user = await this.userService.findOne({ where: {name} });
+
+    if(!user){
+      throw new BadRequestException('No user with given name has been found.');
+    }
+
+    if(!await bcrypt.compare(oldPassword, user.password)){
+      throw new BadRequestException(`Given password does not match the user's password.`);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    user.password = hashedPassword;
+    console.log(user);
+
+    const update = await this.userService.update({ id: user.id }, { password: user.password });
+
+    delete update.password;
+
+    return update;
+  }
+
   // @Get('users')
 
   @Post('logout')
