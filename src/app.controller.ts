@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, BadRequestException, UnauthorizedException, Res, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, BadRequestException, UnauthorizedException, ForbiddenException, Res, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
@@ -45,6 +45,10 @@ export class AppController {
 
     if(!user){
       throw new BadRequestException('No user with given name has been found.');
+    }
+
+    if(user.isBlocked){
+      throw new ForbiddenException({ message: `This account has been blocked.` });
     }
 
     if(!await bcrypt.compare(password, user.password)){
@@ -113,7 +117,37 @@ export class AppController {
     user.password = hashedPassword;
 
     // const update = await this.userService.update({ id: user.id }, { password: user.password });
-    const update = await this.userService.update({id: user.id}, {password: user.password});
+
+    // delete update.password;
+
+    // return update;
+  }
+
+  @Post('update-account')
+  async updateAccount(
+    @Body('id') id: number,
+    @Body('name') name: string,
+    @Body('roleId') roleId: number,
+    @Body('mustChangePassword') mustChangePassword: boolean,
+    @Body('passwordRestrictionsEnabled') passwordRestrictionsEnabled: boolean,
+    @Body('isBlocked') isBlocked: boolean,
+  ){
+    const fetchedUser = await this.userService.findOne({where: {id}});
+
+    if(!fetchedUser){
+      throw new BadRequestException('No user with given name has been found.');
+    }
+
+    const update = await this.userService.update({
+      id: fetchedUser.id,
+      name: name,
+      password: fetchedUser.password,
+      roleId: roleId,
+      passwordExpiration: fetchedUser.passwordExpiration,
+      mustChangePassword: mustChangePassword,
+      passwordRestrictionsEnabled: passwordRestrictionsEnabled,
+      isBlocked: isBlocked
+    });
 
     delete update.password;
 
