@@ -111,16 +111,20 @@ export class AppController {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     user.password = hashedPassword;
-    console.log(user);
 
-    const update = await this.userService.update({ id: user.id }, { password: user.password });
+    // const update = await this.userService.update({ id: user.id }, { password: user.password });
+    const update = await this.userService.update({id: user.id}, {password: user.password});
 
     delete update.password;
 
     return update;
   }
 
-  // @Get('users')
+  @Get('users')
+  async users(){
+    const users = await this.userService.findAll();
+    return users;
+  }
 
   @Post('logout')
   async logout(@Res({passthrough: true}) response: Response){

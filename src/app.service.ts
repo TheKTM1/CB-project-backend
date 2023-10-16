@@ -15,9 +15,9 @@ export class AppService {
     return this.userRepository.save(data);
   }
 
-  async update(criteria: any, data: any): Promise<User> {
-    await this.userRepository.update(criteria, data);
-    return this.userRepository.findOne(criteria);
+  async update(condition: any, data: any): Promise<User> {
+    await this.userRepository.update(condition, data);
+    return this.userRepository.findOne(condition);
   }
 
   async findOne(condition: any): Promise<User> {
