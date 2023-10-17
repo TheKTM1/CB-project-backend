@@ -24,7 +24,7 @@ export class AppController {
         name,
         password: hashedPassword,
         roleId: 2,
-        // passwordExpiration,
+        passwordExpiration: 1,
         mustChangePassword: true,
         passwordRestrictionsEnabled: true,
         isBlocked: false,
@@ -182,9 +182,34 @@ export class AppController {
       isBlocked: fetchedUser.isBlocked
     });
 
-    delete drop[0].password;
-
     return drop;
+  }
+
+  @Post('add-account')
+  async addAccount(
+    @Body('name') name: string,
+    @Body('password') password: string,
+    @Body('roleId') roleId: number,
+    @Body('passwordExpiration') passwordExpiration: number,
+    @Body('mustChangePassword') mustChangePassword: boolean,
+    @Body('passwordRestrictionsEnabled') passwordRestrictionsEnabled: boolean,
+    @Body('isBlocked') isBlocked: boolean,
+  ){
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await this.userService.create({
+      name,
+      password: hashedPassword,
+      roleId,
+      passwordExpiration,
+      mustChangePassword,
+      passwordRestrictionsEnabled,
+      isBlocked
+    });
+
+    delete user.password;
+    
+    return user;
   }
 
   @Get('users')
