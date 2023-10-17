@@ -114,13 +114,20 @@ export class AppController {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-    user.password = hashedPassword;
+    const update = await this.userService.update({
+      id: user.id,
+      name: user.name,
+      password: hashedPassword,
+      roleId: user.roleId,
+      passwordExpiration: user.passwordExpiration,
+      mustChangePassword: user.mustChangePassword,
+      passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
+      isBlocked: user.isBlocked
+    });
 
-    // const update = await this.userService.update({ id: user.id }, { password: user.password });
+    delete update.password;
 
-    // delete update.password;
-
-    // return update;
+    return update;
   }
 
   @Post('update-account')
@@ -152,6 +159,32 @@ export class AppController {
     delete update.password;
 
     return update;
+  }
+
+  @Post('drop-account')
+  async dropAccount(
+    @Body('id') id: number,
+  ){
+    const fetchedUser = await this.userService.findOne({where: {id}});
+
+    if(!fetchedUser){
+      throw new BadRequestException('No user with given name has been found.');
+    }
+
+    const drop = await this.userService.drop({
+      id: fetchedUser.id,
+      name: fetchedUser.name,
+      password: fetchedUser.password,
+      roleId: fetchedUser.roleId,
+      passwordExpiration: fetchedUser.passwordExpiration,
+      mustChangePassword: fetchedUser.mustChangePassword,
+      passwordRestrictionsEnabled: fetchedUser.passwordRestrictionsEnabled,
+      isBlocked: fetchedUser.isBlocked
+    });
+
+    delete drop[0].password;
+
+    return drop;
   }
 
   @Get('users')
