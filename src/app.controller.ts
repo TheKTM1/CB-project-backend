@@ -20,11 +20,13 @@ export class AppController {
     ){
       const hashedPassword = await bcrypt.hash(password, 10);
 
+      const expirationDate = new Date('2023-12-31');
+
       const user = await this.userService.create({
         name,
         password: hashedPassword,
         roleId: 2,
-        passwordExpiration: 1,
+        passwordExpiration: expirationDate,
         mustChangePassword: true,
         passwordRestrictionsEnabled: true,
         isBlocked: false,
@@ -114,6 +116,10 @@ export class AppController {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    if(user.mustChangePassword == true){
+      user.mustChangePassword = false;
+    }
+
     const update = await this.userService.update({
       id: user.id,
       name: user.name,
@@ -135,6 +141,7 @@ export class AppController {
     @Body('id') id: number,
     @Body('name') name: string,
     @Body('roleId') roleId: number,
+    @Body('passwordExpiration') passwordExpiration: Date,
     @Body('mustChangePassword') mustChangePassword: boolean,
     @Body('passwordRestrictionsEnabled') passwordRestrictionsEnabled: boolean,
     @Body('isBlocked') isBlocked: boolean,
@@ -150,7 +157,7 @@ export class AppController {
       name: name,
       password: fetchedUser.password,
       roleId: roleId,
-      passwordExpiration: fetchedUser.passwordExpiration,
+      passwordExpiration: passwordExpiration,
       mustChangePassword: mustChangePassword,
       passwordRestrictionsEnabled: passwordRestrictionsEnabled,
       isBlocked: isBlocked
@@ -190,7 +197,7 @@ export class AppController {
     @Body('name') name: string,
     @Body('password') password: string,
     @Body('roleId') roleId: number,
-    @Body('passwordExpiration') passwordExpiration: number,
+    @Body('passwordExpiration') passwordExpiration: Date,
     @Body('mustChangePassword') mustChangePassword: boolean,
     @Body('passwordRestrictionsEnabled') passwordRestrictionsEnabled: boolean,
     @Body('isBlocked') isBlocked: boolean,
