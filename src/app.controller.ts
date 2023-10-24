@@ -121,14 +121,24 @@ export class AppController {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    const passwordHistoryJson = user.passwordHistory === null ? {} : JSON.parse(user.passwordHistory);
+    const jsonLength = Object.keys(passwordHistoryJson).length;
+
+    Object.keys(passwordHistoryJson).forEach(async key => {
+      const passwordHistoryElement = passwordHistoryJson[key];
+
+      const isMatch = await bcrypt.compare(newPassword, passwordHistoryElement);
+
+      if(isMatch){
+        throw new BadRequestException(`This password has already been used.`);
+      }
+    });
+
+    passwordHistoryJson[jsonLength] = hashedPassword;
+
     if(user.mustChangePassword == true){
       user.mustChangePassword = false;
     }
-
-    const passwordHistoryJson = JSON.parse(user.passwordHistory);
-    const jsonLength = Object.keys(passwordHistoryJson).length;
-
-    passwordHistoryJson[jsonLength] = hashedPassword;
 
     const update = await this.userService.update({
       id: user.id,
