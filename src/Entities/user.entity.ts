@@ -25,4 +25,7 @@ export class User {
 
     @Column()
     isBlocked: boolean;
+
+    @Column({nullable: true})
+    passwordHistory: string;
 }
