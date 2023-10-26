@@ -22,6 +22,9 @@ export class AppController {
 
       const expirationDate = new Date('2023-12-31');
 
+      const passwordHistoryJson = {};
+      passwordHistoryJson[0] = hashedPassword;
+
       const user = await this.userService.create({
         name,
         password: hashedPassword,
@@ -30,6 +33,7 @@ export class AppController {
         mustChangePassword: true,
         passwordRestrictionsEnabled: true,
         isBlocked: false,
+        passwordHistory: JSON.stringify(passwordHistoryJson),
       });
 
       delete user.password;
@@ -88,6 +92,7 @@ export class AppController {
         mustChangePassword: user.mustChangePassword,
         passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
         isBlocked: user.isBlocked,
+        passwordHistory: user.passwordHistory,
       };
 
       return userResponse;
@@ -116,6 +121,21 @@ export class AppController {
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
+    const passwordHistoryJson = user.passwordHistory === null ? {} : JSON.parse(user.passwordHistory);
+    const jsonLength = Object.keys(passwordHistoryJson).length;
+
+    Object.keys(passwordHistoryJson).forEach(async key => {
+      const passwordHistoryElement = passwordHistoryJson[key];
+
+      const isMatch = await bcrypt.compare(newPassword, passwordHistoryElement);
+
+      if(isMatch){
+        throw new BadRequestException(`This password has already been used.`);
+      }
+    });
+
+    passwordHistoryJson[jsonLength] = hashedPassword;
+
     if(user.mustChangePassword == true){
       user.mustChangePassword = false;
     }
@@ -128,7 +148,8 @@ export class AppController {
       passwordExpiration: user.passwordExpiration,
       mustChangePassword: user.mustChangePassword,
       passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
-      isBlocked: user.isBlocked
+      isBlocked: user.isBlocked,
+      passwordHistory: JSON.stringify(passwordHistoryJson),
     });
 
     delete update.password;
@@ -160,7 +181,8 @@ export class AppController {
       passwordExpiration: passwordExpiration,
       mustChangePassword: mustChangePassword,
       passwordRestrictionsEnabled: passwordRestrictionsEnabled,
-      isBlocked: isBlocked
+      isBlocked: isBlocked,
+      passwordHistory: fetchedUser.passwordHistory,
     });
 
     delete update.password;
@@ -186,7 +208,8 @@ export class AppController {
       passwordExpiration: fetchedUser.passwordExpiration,
       mustChangePassword: fetchedUser.mustChangePassword,
       passwordRestrictionsEnabled: fetchedUser.passwordRestrictionsEnabled,
-      isBlocked: fetchedUser.isBlocked
+      isBlocked: fetchedUser.isBlocked,
+      passwordHistory: fetchedUser.passwordHistory,
     });
 
     return drop;
@@ -201,6 +224,7 @@ export class AppController {
     @Body('mustChangePassword') mustChangePassword: boolean,
     @Body('passwordRestrictionsEnabled') passwordRestrictionsEnabled: boolean,
     @Body('isBlocked') isBlocked: boolean,
+    @Body('passwordHistory') passwordHistory: string,
   ){
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -211,7 +235,8 @@ export class AppController {
       passwordExpiration,
       mustChangePassword,
       passwordRestrictionsEnabled,
-      isBlocked
+      isBlocked,
+      passwordHistory,
     });
 
     delete user.password;
