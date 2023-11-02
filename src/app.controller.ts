@@ -238,6 +238,26 @@ export class AppController {
     return update;
   }
 
+  @Post('fetch-logs')
+  async fetchLogs(
+    @Body('id') id: number,
+  ){
+    const user = await this.userService.findOne({ where: {id} });
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile) as {[key: string]: {name: string}};
+    
+    const logArray = Object.entries(logJson);
+    const result = Object.fromEntries(logArray.filter(([key, value]) => value.name === user.name));
+
+    return result;
+  }
+
   @Post('drop-account')
   async dropAccount(
     @Body('id') id: number,
