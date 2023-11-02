@@ -68,12 +68,20 @@ export class AppController {
     response.cookie('jwt', jwt, {httpOnly: true});
 
     //send a log
-    const logDatetimeString = new Date().toLocaleString(undefined, {
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
     });
 
     const logStatus = `Zalogowano użytkownika ${user.name}.`;
@@ -102,6 +110,8 @@ export class AppController {
         console.error(error);
       }
     });
+
+    console.log(`${logTimeString} ${logStatus}`);
 
     return {
       message: 'success'
@@ -289,8 +299,66 @@ export class AppController {
   }
 
   @Post('logout')
-  async logout(@Res({passthrough: true}) response: Response){
+  async logout(@Req() request: Request, @Res({passthrough: true}) response: Response){
+
+    const cookie = request.cookies['jwt'];
+
+    const data = await this.jwtService.verifyAsync(cookie);
+
+    if(!data){
+      console.error('No jwt data.');
+      throw new UnauthorizedException();
+    }
+
+    const user = await this.userService.findOne({where: {id: data['id']} });
+
     response.clearCookie('jwt');
+
+    //send a log
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const logStatus = `Wylogowano użytkownika ${user.name}.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": user.name,
+      "date": logDatetimeString,
+      "action": "Wylogowanie",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+    
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
+
+    console.log(`${logTimeString} ${logStatus}`);
 
     return {
       message: 'success'
