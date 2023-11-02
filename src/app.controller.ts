@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, BadRequestException, UnauthorizedException
 import { AppService } from './app.service';
 import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
+import { writeFile, readFileSync } from 'fs';
+import { aes_decrypt, aes_encrypt } from './Scripts/crypto_functions';
 import * as bcrypt from 'bcrypt';
 
 @Controller('api')
@@ -64,6 +66,42 @@ export class AppController {
     const jwt = await this.jwtService.signAsync({id: user.id});
     
     response.cookie('jwt', jwt, {httpOnly: true});
+
+    //send a log
+    const logDatetimeString = new Date().toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logStatus = `Zalogowano użytkownika ${user.name}.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": user.name,
+      "date": logDatetimeString,
+      "action": "Logowanie",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
 
     return {
       message: 'success'
