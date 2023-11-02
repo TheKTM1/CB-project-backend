@@ -40,6 +40,52 @@ export class AppController {
 
       delete user.password;
       
+      //send a log
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const logStatus = `Użytkownik ${user.name} zarejestrował się.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": user.name,
+      "date": logDatetimeString,
+      "action": "Utworzenie konta",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+    
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
+
+    console.log(`${logTimeString} ${logStatus}`);
+
       return user;
   }
 
@@ -202,6 +248,52 @@ export class AppController {
 
     delete update.password;
 
+    //send a log
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const logStatus = `Użytkownik ${user.name} zmienił hasło.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": user.name,
+      "date": logDatetimeString,
+      "action": "Zmiana hasła",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+    
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
+
+    console.log(`${logTimeString} ${logStatus}`);
+
     return update;
   }
 
@@ -235,6 +327,52 @@ export class AppController {
 
     delete update.password;
 
+    //send a log
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const logStatus = `Zmieniono uprawnienia użytkownika ${fetchedUser.name}.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": fetchedUser.name,
+      "date": logDatetimeString,
+      "action": "Aktualizacja uprawnień",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+    
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
+
+    console.log(`${logTimeString} ${logStatus}`);
+
     return update;
   }
 
@@ -267,6 +405,52 @@ export class AppController {
     if(!fetchedUser){
       throw new BadRequestException('No user with given name has been found.');
     }
+
+    //send a log
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const logStatus = `Usunięto użytkownika ${fetchedUser.name}.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": fetchedUser.name,
+      "date": logDatetimeString,
+      "action": "Skasowanie",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+    
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
+
+    console.log(`${logTimeString} ${logStatus}`);
 
     const drop = await this.userService.drop({
       id: fetchedUser.id,
@@ -308,6 +492,52 @@ export class AppController {
     });
 
     delete user.password;
+
+    //send a log
+    const currentTime = new Date();
+
+    const logDatetimeString = currentTime.toLocaleString(undefined, {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const logTimeString = currentTime.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+
+    const logStatus = `Utworzono użytkownika ${user.name}.`;
+
+    let logFile = readFileSync('database/action_log.txt', 'utf8');
+
+    if(logFile != ''){
+      logFile = aes_decrypt(logFile);
+    }
+    
+    const logJson = logFile === '' ? {} : JSON.parse(logFile);
+
+    logJson[Object.keys(logJson).length] = {
+      "name": user.name,
+      "date": logDatetimeString,
+      "action": "Utworzenie konta",
+      "status": logStatus,
+    };
+
+    let logString = JSON.stringify(logJson);
+    
+    logString = aes_encrypt(logString);
+
+    writeFile('database/action_log.txt', logString, (error) => {
+      if(error){
+        console.error(error);
+      }
+    });
+
+    console.log(`${logTimeString} ${logStatus}`);
     
     return user;
   }
