@@ -28,4 +28,7 @@ export class User {
 
     @Column({nullable: true})
     passwordHistory: string;
+
+    @Column({nullable: true})
+    oneTimePasswordX: number;
 }

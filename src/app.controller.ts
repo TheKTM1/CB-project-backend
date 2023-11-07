@@ -89,6 +89,34 @@ export class AppController {
       return user;
   }
 
+  @Post('verify')
+  async verify(
+    @Body('name') name: string,
+  ){
+    const user = await this.userService.findOne({where: {name}});
+    console.log(user.id);
+
+    if(!user){
+      throw new BadRequestException('No user with given name has been found.');
+    }
+
+    const x = Math.floor((Math.random() * 100) + 1);
+    const update = await this.userService.update({
+      id: user.id,
+      name: name,
+      password: user.password,
+      roleId: user.roleId,
+      passwordExpiration: user.passwordExpiration,
+      mustChangePassword: user.mustChangePassword,
+      passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
+      isBlocked: user.isBlocked,
+      passwordHistory: user.passwordHistory,
+      oneTimePasswordX: x,
+    });
+
+    return x;
+  }
+
   @Post('login')
   async login(
     @Body('name') name: string,
@@ -462,6 +490,7 @@ export class AppController {
       passwordRestrictionsEnabled: fetchedUser.passwordRestrictionsEnabled,
       isBlocked: fetchedUser.isBlocked,
       passwordHistory: fetchedUser.passwordHistory,
+      oneTimePasswordX: fetchedUser.oneTimePasswordX,
     });
 
     return drop;
