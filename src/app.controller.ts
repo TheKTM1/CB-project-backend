@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import { writeFile, readFileSync } from 'fs';
 import { aes_decrypt, aes_encrypt } from './Scripts/crypto_functions';
+import { calculate_one_time_password, convert_one_time_password } from './Scripts/one_time_password_functions'
 import * as bcrypt from 'bcrypt';
 
 @Controller('api')
@@ -94,11 +95,11 @@ export class AppController {
     @Body('name') name: string,
   ){
     const user = await this.userService.findOne({where: {name}});
-    console.log(user.id);
-
+    
     if(!user){
       throw new BadRequestException('No user with given name has been found.');
     }
+    console.log(user.id);
 
     const x = Math.floor((Math.random() * 100) + 1);
     const update = await this.userService.update({
@@ -121,6 +122,7 @@ export class AppController {
   async login(
     @Body('name') name: string,
     @Body('password') password: string,
+    @Body('oneTimePassword') oneTimePassword: string,
     @Res({passthrough: true}) response: Response
   ){
     const user = await this.userService.findOne({where: {name}});
@@ -135,6 +137,10 @@ export class AppController {
 
     if(!await bcrypt.compare(password, user.password)){
       throw new BadRequestException(`Given password does not match the user's password.`);
+    }
+
+    if(convert_one_time_password(oneTimePassword) != calculate_one_time_password(user.oneTimePasswordX, user.name)){
+      throw new BadRequestException(`Given one time password does not match the user's one time password.`);
     }
 
     const jwt = await this.jwtService.signAsync({id: user.id});
