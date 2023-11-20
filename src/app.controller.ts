@@ -37,6 +37,7 @@ export class AppController {
         isBlocked: false,
         passwordHistory: JSON.stringify(passwordHistoryJson),
         badLoginBlockExpirationTime: null,
+        sessionTimeMinutes: 15,
       });
 
       delete user.password;
@@ -194,6 +195,7 @@ export class AppController {
       isBlocked: user.isBlocked,
       passwordHistory: user.passwordHistory,
       badLoginBlockExpirationTime: unblockTime,
+      sessionTimeMinutes: user.sessionTimeMinutes,
     });
 
     delete block.password;
@@ -224,6 +226,7 @@ export class AppController {
         passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
         isBlocked: user.isBlocked,
         passwordHistory: user.passwordHistory,
+        sessionTimeMinutes: user.sessionTimeMinutes,
       };
 
       return userResponse;
@@ -282,6 +285,7 @@ export class AppController {
       isBlocked: user.isBlocked,
       passwordHistory: JSON.stringify(passwordHistoryJson),
       badLoginBlockExpirationTime: user.badLoginBlockExpirationTime,
+      sessionTimeMinutes: user.sessionTimeMinutes,
     });
 
     delete update.password;
@@ -344,6 +348,7 @@ export class AppController {
     @Body('mustChangePassword') mustChangePassword: boolean,
     @Body('passwordRestrictionsEnabled') passwordRestrictionsEnabled: boolean,
     @Body('isBlocked') isBlocked: boolean,
+    @Body('sessionTimeMinutes') sessionTimeMinutes: number,
   ){
     const fetchedUser = await this.userService.findOne({where: {id}});
 
@@ -362,6 +367,7 @@ export class AppController {
       isBlocked: isBlocked,
       passwordHistory: fetchedUser.passwordHistory,
       badLoginBlockExpirationTime: null,
+      sessionTimeMinutes: sessionTimeMinutes,
     });
 
     delete update.password;
@@ -502,6 +508,7 @@ export class AppController {
       isBlocked: fetchedUser.isBlocked,
       passwordHistory: fetchedUser.passwordHistory,
       badLoginBlockExpirationTime: fetchedUser.badLoginBlockExpirationTime,
+      sessionTimeMinutes: fetchedUser.sessionTimeMinutes,
     });
 
     return drop;
@@ -518,6 +525,7 @@ export class AppController {
     @Body('isBlocked') isBlocked: boolean,
     @Body('passwordHistory') passwordHistory: string,
     @Body('badLoginBlockExpirationTime') badLoginBlockExpirationTime: Date,
+    @Body('sessionTimeMinutes') sessionTimeMinutes: number,
   ){
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -531,6 +539,7 @@ export class AppController {
       isBlocked,
       passwordHistory,
       badLoginBlockExpirationTime,
+      sessionTimeMinutes,
     });
 
     delete user.password;
