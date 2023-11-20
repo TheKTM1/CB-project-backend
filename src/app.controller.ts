@@ -102,8 +102,15 @@ export class AppController {
       throw new BadRequestException('No user with given name has been found.');
     }
 
+    const currentTime = new Date();
+
     if(user.isBlocked){
       throw new ForbiddenException({ message: `This account has been blocked.` });
+    }
+
+    if(user.badLoginBlockExpirationTime && user.badLoginBlockExpirationTime > currentTime){
+      console.log(`czas blokady: ${user.badLoginBlockExpirationTime.toLocaleString()} > czas obecny: ${currentTime.toLocaleString()}`);
+      throw new ForbiddenException({ message: "This account is blocked for bad logins."});
     }
 
     if(!await bcrypt.compare(password, user.password)){
@@ -115,8 +122,6 @@ export class AppController {
     response.cookie('jwt', jwt, {httpOnly: true});
 
     //send a log
-    const currentTime = new Date();
-
     const logDatetimeString = currentTime.toLocaleString(undefined, {
       day: '2-digit',
       month: '2-digit',
@@ -163,6 +168,37 @@ export class AppController {
     return {
       message: 'success'
     };
+  }
+
+  @Post('block-account')
+  async blockAccount(
+    @Body('name') name: string,
+  ){
+    const user = await this.userService.findOne({where: {name}});
+
+    if(!user){
+      throw new BadRequestException('No user with given name has been found.');
+    }
+
+    const currentTime = new Date();
+    const unblockTime = new Date(currentTime.getTime() + 15 * 60000);
+
+    const block = await this.userService.update({
+      id: user.id,
+      name: user.name,
+      password: user.password,
+      roleId: user.roleId,
+      passwordExpiration: user.passwordExpiration,
+      mustChangePassword: user.mustChangePassword,
+      passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
+      isBlocked: user.isBlocked,
+      passwordHistory: user.passwordHistory,
+      badLoginBlockExpirationTime: unblockTime,
+    });
+
+    delete block.password;
+
+    return block;
   }
 
   @Get('user')
