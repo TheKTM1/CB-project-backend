@@ -28,4 +28,10 @@ export class User {
 
     @Column({nullable: true})
     passwordHistory: string;
+
+    @Column({nullable: true})
+    badLoginBlockExpirationTime: Date;
+
+    @Column({nullable: true})
+    sessionTimeMinutes: number;
 }
