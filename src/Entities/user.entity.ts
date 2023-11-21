@@ -30,6 +30,9 @@ export class User {
     passwordHistory: string;
 
     @Column({nullable: true})
+    oneTimePasswordX: number;
+
+    @Column({nullable: true})
     badLoginBlockExpirationTime: Date;
 
     @Column({nullable: true})

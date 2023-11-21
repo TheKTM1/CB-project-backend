@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Response, Request } from 'express';
 import { writeFile, readFileSync } from 'fs';
 import { aes_decrypt, aes_encrypt } from './Scripts/crypto_functions';
+import { calculate_one_time_password, convert_one_time_password } from './Scripts/one_time_password_functions'
 import * as bcrypt from 'bcrypt';
 
 @Controller('api')
@@ -91,10 +92,39 @@ export class AppController {
       return user;
   }
 
+  @Post('verify')
+  async verify(
+    @Body('name') name: string,
+  ){
+    const user = await this.userService.findOne({where: {name}});
+    
+    if(!user){
+      throw new BadRequestException('No user with given name has been found.');
+    }
+    console.log(user.id);
+
+    const x = Math.floor((Math.random() * 100) + 1);
+    const update = await this.userService.update({
+      id: user.id,
+      name: name,
+      password: user.password,
+      roleId: user.roleId,
+      passwordExpiration: user.passwordExpiration,
+      mustChangePassword: user.mustChangePassword,
+      passwordRestrictionsEnabled: user.passwordRestrictionsEnabled,
+      isBlocked: user.isBlocked,
+      passwordHistory: user.passwordHistory,
+      oneTimePasswordX: x,
+    });
+
+    return x;
+  }
+
   @Post('login')
   async login(
     @Body('name') name: string,
     @Body('password') password: string,
+    @Body('oneTimePassword') oneTimePassword: string,
     @Res({passthrough: true}) response: Response
   ){
     const user = await this.userService.findOne({where: {name}});
@@ -116,6 +146,10 @@ export class AppController {
 
     if(!await bcrypt.compare(password, user.password)){
       throw new BadRequestException(`Given password does not match the user's password.`);
+    }
+
+    if(convert_one_time_password(oneTimePassword) != calculate_one_time_password(user.oneTimePasswordX, user.name)){
+      throw new BadRequestException(`Given one time password does not match the user's one time password.`);
     }
 
     const jwt = await this.jwtService.signAsync({id: user.id});
@@ -507,6 +541,8 @@ export class AppController {
       passwordRestrictionsEnabled: fetchedUser.passwordRestrictionsEnabled,
       isBlocked: fetchedUser.isBlocked,
       passwordHistory: fetchedUser.passwordHistory,
+      oneTimePasswordX: fetchedUser.oneTimePasswordX,
+
       badLoginBlockExpirationTime: fetchedUser.badLoginBlockExpirationTime,
       sessionTimeMinutes: fetchedUser.sessionTimeMinutes,
     });
