@@ -148,7 +148,7 @@ export class AppController {
     if(!await bcrypt.compare(password, user.password)){
       throw new BadRequestException(`Given password does not match the user's password.`);
     }
-
+ 
     // if(convert_one_time_password(oneTimePassword) != calculate_one_time_password(user.oneTimePasswordX, user.name)){
     //   throw new BadRequestException(`Given one time password does not match the user's one time password.`);
     // }
