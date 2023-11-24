@@ -125,6 +125,7 @@ export class AppController {
     @Body('name') name: string,
     @Body('password') password: string,
     @Body('oneTimePassword') oneTimePassword: string,
+    @Body('captchaAnswer') captchaAnswer: string,
     @Res({passthrough: true}) response: Response
   ){
     const user = await this.userService.findOne({where: {name}});
@@ -147,9 +148,13 @@ export class AppController {
     if(!await bcrypt.compare(password, user.password)){
       throw new BadRequestException(`Given password does not match the user's password.`);
     }
+ 
+    // if(convert_one_time_password(oneTimePassword) != calculate_one_time_password(user.oneTimePasswordX, user.name)){
+    //   throw new BadRequestException(`Given one time password does not match the user's one time password.`);
+    // }
 
-    if(convert_one_time_password(oneTimePassword) != calculate_one_time_password(user.oneTimePasswordX, user.name)){
-      throw new BadRequestException(`Given one time password does not match the user's one time password.`);
+    if(captchaAnswer.toUpperCase() != "DRZEWO") {
+      throw new BadRequestException(`Given captcha answer does not match the answer.`);
     }
 
     const jwt = await this.jwtService.signAsync({id: user.id});
