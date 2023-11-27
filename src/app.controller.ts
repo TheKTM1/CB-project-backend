@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, BadRequestException, UnauthorizedException, ForbiddenException, Res, Req } from '@nestjs/common';
 import { AppService } from './app.service';
 import { JwtService } from '@nestjs/jwt';
-import { Response, Request } from 'express';
+import { Response, Request, response } from 'express';
 import { writeFile, readFileSync } from 'fs';
 import { aes_decrypt, aes_encrypt } from './Scripts/crypto_functions';
 import { calculate_one_time_password, convert_one_time_password } from './Scripts/one_time_password_functions'
@@ -274,6 +274,28 @@ export class AppController {
       console.error('Error while processing a request.');
       throw new UnauthorizedException();
     }
+  }
+
+  @Post('verify-recaptcha')
+  async verifyRecaptcha(
+    @Body('token') token: string,
+  ){
+    let verified = false;
+
+    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({
+          secret: '6LdNQhwpAAAAAGqWsLxiX9GiaIB5v8s-zUkVCgT4',
+          response: token,
+      }),
+    })
+    .then(response => response.json())
+    .then(responseBody => {
+      verified = responseBody.success;
+    });
+    
+    return verified;
   }
 
   @Post('change-password')
